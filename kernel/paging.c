@@ -18,7 +18,6 @@ void enable_paging(uint32_t page_repertory_addr) {
         : "r" (page_repertory_addr)
         : "eax", "memory"
     );
-    
 }
 
 void initialise_paging() {
@@ -48,7 +47,7 @@ void alloc_repertory_table() {
         rpt[i].repertory_entry.addr = ((uint32_t)pgtable >> 12);
         rpt[i].repertory_entry.p = 1; 
         rpt[i].repertory_entry.rw = 1;
-        rpt[i].repertory_entry.iskernel = 0;
+        rpt[i].repertory_entry.user = 1;
     }
 }
 
@@ -56,7 +55,7 @@ PageTable alloc_page_entry(uint32_t address, int is_writeable, int is_kernel) {
     uint16_t indexPDE = address >> 22;
     uint16_t indexPTE = (address >> 12) & 0x3FF;
 
-    // Plus besoin de vérifier si la table existe, on a tout alloué !
+    // La table est allouée
     PageTable pagtab_ptr = (PageTable) (rpt[indexPDE].repertory_entry.addr << 12);
     
     // On prend une page physique libre.
@@ -66,7 +65,7 @@ PageTable alloc_page_entry(uint32_t address, int is_writeable, int is_kernel) {
     pagtab_ptr[indexPTE].page_entry.addr = new_page_addr >> 12;
     pagtab_ptr[indexPTE].page_entry.p = 1;
     pagtab_ptr[indexPTE].page_entry.rw = is_writeable;
-    pagtab_ptr[indexPTE].page_entry.iskernel = is_kernel;
+    pagtab_ptr[indexPTE].page_entry.user = !is_kernel;
 
     return pagtab_ptr;
 }

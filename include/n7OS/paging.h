@@ -14,7 +14,7 @@
 typedef struct {
     uint32_t p : 1;
     uint32_t rw : 1;
-    uint32_t iskernel : 1;
+    uint32_t user : 1;
     uint32_t accessed : 1;
     uint32_t reserved : 4;
     uint32_t dirty : 1;
@@ -44,7 +44,7 @@ typedef PTE * PageTable;
 typedef struct {
     uint32_t p : 1;
     uint32_t rw : 1;
-    uint32_t iskernel : 1;
+    uint32_t user : 1;
     uint32_t reserved : 9;
     uint32_t addr : 20;
 } __attribute__((packed)) page_repertory_entry_t;
