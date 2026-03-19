@@ -137,6 +137,8 @@ static void setup_idt(int pgdir) {
 	struct pseudo_descriptor pdesc;
 	unsigned long i;
 
+	extern void db_trap_handler(void);
+
 	memset(idt, 0, sizeof(idt));
 
 	for (i=0; i<sizeof(exception_handler_tasks)/sizeof(unsigned long); i++) {
@@ -156,9 +158,16 @@ static void setup_idt(int pgdir) {
 		ts->eflags = 2;
 		ts->trace_trap = 0;
 		ts->cr3 = pgdir;
-		access = ACC_TASK_GATE;
-		access += (i == 3) ? 0x60 : 0;
-		fill_gate(idt + i, 0, TRAP_TSS_BASE + 8 * i, access, 0);
+
+		// Correctifs
+		if (i == 1) {
+			fill_gate(idt + 1, (unsigned)db_trap_handler, KERNEL_CS, ACC_TRAP_GATE, 0);
+		} else {
+			access = ACC_TASK_GATE;
+			access += (i == 3) ? 0x60 : 0;
+			fill_gate(idt + i, 0, TRAP_TSS_BASE + 8 * i, access, 0);
+		}
+	
 	}
 
         pdesc.limit = sizeof(idt) - 1;

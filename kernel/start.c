@@ -14,17 +14,17 @@ void kernel_start(void)
     setup_base((uint32_t)rpt);
     // print_mem();
 
-    //printf("coucou\ntout\nle\nmonde");
+    printf("coucou\ntout\nle\nmonde");
 
     // lancement des interruptions
     sti();
 
     //alloc_page_entry(0xA000000, 1, 1);
-    // uint32_t *ptr = (uint32_t *)0xA000000;
-    // int page_fault = *ptr;
-    // page_fault = 0;
+    uint32_t *ptr = (uint32_t *)0xA000000;
+    int page_fault = *ptr;
+    page_fault = 0;
 
-    // printf ("%d\n", page_fault);
+    printf ("%d\n", page_fault);
 
     // on ne doit jamais sortir de kernel_start
     while (1) {
