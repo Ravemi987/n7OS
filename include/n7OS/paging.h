@@ -12,8 +12,15 @@
  * 
  */
 typedef struct {
-    // a completer
-} page_table_entry_t;
+    uint32_t p : 1;
+    uint32_t rw : 1;
+    uint32_t iskernel : 1;
+    uint32_t accessed : 1;
+    uint32_t reserved : 4;
+    uint32_t dirty : 1;
+    uint32_t available : 3;
+    uint32_t addr : 20;
+} __attribute__((packed)) page_table_entry_t;
 
 /**
  * @brief Une entrée dans la table de page peut être manipulée en utilisant
@@ -29,6 +36,32 @@ typedef union {
  * 
  */
 typedef PTE * PageTable;
+
+
+/**
+ * @brief Description d'une ligne du répertoire de page
+ */
+typedef struct {
+    uint32_t p : 1;
+    uint32_t rw : 1;
+    uint32_t iskernel : 1;
+    uint32_t reserved : 9;
+    uint32_t addr : 20;
+} __attribute__((packed)) page_repertory_entry_t;
+
+/**
+ * @brief Une entrée dans le répertoire de page peut être manipulée en utilisant
+ *        la structure page_repertory_entry_t ou directement la valeur
+ */
+typedef union {
+    page_repertory_entry_t repertory_entry;
+    uint32_t value;
+} RTE;
+
+
+typedef RTE * RepertoryTable;
+
+extern RepertoryTable rpt;
 
 /**
  * @brief Cette fonction initialise le répertoire de page, alloue les pages de table du noyau

@@ -7,6 +7,11 @@
 
 #include <inttypes.h>
 
+
+void init_heap();
+
+uint32_t get_stack_top();
+
 /**
  * @brief Alloue une zone mémoire de taille sz. C'est une version simplifiée de kmalloc().
  * 
