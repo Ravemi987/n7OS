@@ -7,6 +7,8 @@
 #define VGA_HEIGHT 25
 #define VGA_SIZE 2000
 
+#define HEADER_HEIGHT 3
+
 #define SCREEN_ADDR 0xB8000
 
 #define PORT_CMD  0x3D4
@@ -45,5 +47,11 @@ void init_console();
  * have to implement it in the kernel and in the user program.
  */
 void console_putbytes(const char *s, int len);
+
+/**
+ * Affiche une chaîne de caractères à des coordonnées précises
+ * sans modifier la position du curseur courant.
+ */
+void console_print_at(uint16_t row, uint16_t col, const char *s);
 
 #endif

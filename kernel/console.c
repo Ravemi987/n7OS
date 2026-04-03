@@ -6,7 +6,9 @@
 
 void console_put_cursor(uint16_t pos);
 uint16_t console_get_cursor();
-void console_clear();
+void console_clear(uint8_t start_row);
+uint16_t get_index(uint16_t row, uint16_t column);
+void console_print_header();
 
 /* ----- Init ----- */
 
@@ -17,8 +19,18 @@ void init_console() {
     scr_tab = (uint16_t *) SCREEN_ADDR;
 
     // On clear l'affichage et on positionne le curseur en haut à gauche 
-    console_clear();
-    console_put_cursor(0);
+    console_clear(0);
+    console_print_header();
+    console_put_cursor(get_index(HEADER_HEIGHT, 0));
+}
+
+void console_print_header() {
+    console_print_at(0, 0, "Welcome to Sauron's n7OS !");
+    console_print_at(0, 72, "00:00:00");
+
+    for (uint16_t j = 0; j < VGA_WIDTH; j++) {
+        console_display_char(get_index(HEADER_HEIGHT-1, j), '=');
+    }
 }
 
 /* ----- Fonctions auxiliaires (wrapper) ----- */
@@ -27,9 +39,11 @@ void console_display_char(uint16_t pos, const char c) {
     scr_tab[pos] = (CHAR_COLOR << 8) | c;
 }
 
-void console_clear() {
-    for (uint16_t i = 0; i < VGA_SIZE; i++) {
-        console_display_char(i, ' ');
+void console_clear(uint8_t start_row) {
+    for (uint16_t i = start_row; i < VGA_HEIGHT; i++) {
+        for (uint16_t j = 0; j < VGA_WIDTH; j++) {
+            console_display_char(get_index(i, j), ' ');
+        }
     }
 }
 
@@ -89,8 +103,8 @@ uint16_t console_put_control(const char c, uint16_t pos) {
             new_pos = get_index(row, 0);
             break;
         case '\f':
-            console_clear();
-            new_pos = 0;
+            console_clear(HEADER_HEIGHT);
+            new_pos = get_index(HEADER_HEIGHT, 0);
         default:
             break;
     }
@@ -111,14 +125,24 @@ void console_putchar(const char c) {
 
     // --- position du curseur
     if (pos >= VGA_SIZE) {
-        console_put_cursor(0);
-    } else {
-        console_put_cursor(pos);
+        pos = get_index(HEADER_HEIGHT, 0);
     }
+
+    console_put_cursor(pos);
 }
 
 void console_putbytes(const char *s, int len) {
     for (int i = 0; i<len; i++) {
         console_putchar(s[i]);
+    }
+}
+
+void console_print_at(uint16_t row, uint16_t col, const char *s) {
+    uint16_t pos = get_index(row, col);
+    int i = 0;
+    
+    while (s[i] != '\0') {
+        console_display_char(pos + i, s[i]);
+        i++;
     }
 }
