@@ -5,31 +5,33 @@
 #include <n7OS/paging.h>
 #include <n7OS/mem.h>
 #include <n7OS/time.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <n7OS/keyboard.h>
 
 extern RepertoryTable rpt;
 extern void init_irq();
 
 void kernel_start(void)
 {
-    init_console();
-    initialise_paging();
+    // Attention à ne pas utiliser ailleurs
+    init_console();             // Console
+    initialise_paging();        // Paging
     setup_base((uint32_t)rpt);
+    init_irq();                 // Timer
+    init_timer();
+    init_keyboard();            // Clavier
+    sti();                      // Interruptions
+    init_syscall();             // Appels systèmes
+    
+
     // print_mem();
 
     // --- Test console ---
     printf("coucou\ntout\nle\nmonde\n");
 
-    // --- Interruptions ---
-
-    init_irq();
-
-    // lancement des interruptions
-    sti();
-
-    // Initialisation du timer
-    init_timer();
-
-    __asm__("int $50");
+    // --- Test interruption ---
+    //__asm__("int $50");
 
     
     // --- Test paging ---
@@ -39,6 +41,10 @@ void kernel_start(void)
     // int page_fault = *ptr;
     // page_fault = 0;
     //printf ("%d\n", page_fault);
+
+    // --- Test appels systèmes ---
+
+    //shutdown(1);
     
     // on ne doit jamais sortir de kernel_start
     while (1) {

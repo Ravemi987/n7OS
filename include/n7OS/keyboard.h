@@ -2,6 +2,7 @@
 #define _KEYBOARD_H
 
 #include <inttypes.h>
+#include <n7OS/cpu.h>
 
 // Keyboard ports
 #define KEYB_ENCODER        0x60 
@@ -292,5 +293,9 @@ void init_keyboard();
 
 // Keyboard get character function
 char kgetch();
+
+int is_pressed(uint32_t char_code);
+
+void read_code(uint32_t char_code);
 
 #endif

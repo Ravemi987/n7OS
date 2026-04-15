@@ -14,8 +14,6 @@
 #define CHANNEL2 0x42
 #define COMMAND 0x43
 #define FREQ_OSC 0x1234BD
-#define PIC_CMD 0x20
-#define PIC_CONFIG 0x21
 
 // Horloge 1KHz
 #define HORLOGE 0x3E8

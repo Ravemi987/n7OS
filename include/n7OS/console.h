@@ -46,7 +46,7 @@ void init_console();
  * This is the function called by printf to send its output to the screen. You
  * have to implement it in the kernel and in the user program.
  */
-void console_putbytes(const char *s, int len);
+int console_putbytes(const char *s, int len);
 
 /**
  * Affiche une chaîne de caractères à des coordonnées précises

@@ -9,6 +9,7 @@ uint16_t console_get_cursor();
 void console_clear(uint8_t start_row);
 uint16_t get_index(uint16_t row, uint16_t column);
 void console_print_header();
+void console_display_char(uint16_t pos, const char c);
 
 /* ----- Init ----- */
 
@@ -24,6 +25,7 @@ void init_console() {
     console_put_cursor(get_index(HEADER_HEIGHT, 0));
 }
 
+/* Affichage du header */
 void console_print_header() {
     console_print_at(0, 0, "Welcome to Sauron's n7OS !");
     console_print_at(0, 72, "00:00:00");
@@ -87,11 +89,13 @@ uint16_t console_get_cursor() {
 uint16_t console_put_control(const char c, uint16_t pos) {
     uint16_t new_pos = pos;
     uint16_t row = get_row(pos);
-    uint16_t col = get_col(pos);
     
     switch (c) {
         case '\b':
-            new_pos--;
+            if (new_pos > get_index(HEADER_HEIGHT, 0)) {
+                new_pos--;
+                console_display_char(new_pos, ' ');
+            }
             break;
         case '\t':
             new_pos += 8;
@@ -100,7 +104,7 @@ uint16_t console_put_control(const char c, uint16_t pos) {
             new_pos = get_index(row + 1, 0);
             break;
         case '\r':
-            new_pos = get_index(row, 0);
+            new_pos = get_index(row + 1, 0);
             break;
         case '\f':
             console_clear(HEADER_HEIGHT);
@@ -115,7 +119,7 @@ uint16_t console_put_control(const char c, uint16_t pos) {
 void console_putchar(const char c) {
     uint16_t pos = console_get_cursor();
 
-    // -- traitement du cractère
+    // traitement du cractère
     if (c > 31 && c < 127) {
         console_display_char(pos, c);
         pos++;
@@ -123,7 +127,7 @@ void console_putchar(const char c) {
         pos = console_put_control(c, pos);
     }
 
-    // --- position du curseur
+    // position du curseur
     if (pos >= VGA_SIZE) {
         pos = get_index(HEADER_HEIGHT, 0);
     }
@@ -131,12 +135,15 @@ void console_putchar(const char c) {
     console_put_cursor(pos);
 }
 
-void console_putbytes(const char *s, int len) {
-    for (int i = 0; i<len; i++) {
+int console_putbytes(const char *s, int len) {
+    int i;
+    for (i = 0; i<len; i++) {
         console_putchar(s[i]);
     }
+    return i;
 }
 
+/* Affichae une chaîne de caractères à la position (row, col) */
 void console_print_at(uint16_t row, uint16_t col, const char *s) {
     uint16_t pos = get_index(row, col);
     int i = 0;

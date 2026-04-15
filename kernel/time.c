@@ -16,6 +16,7 @@ uint32_t get_timer() {
     return timer;
 }
 
+/* Gestion d'un timer avec interruptions */
 void init_timer() {
 
     /* Channel 0, accès poids faible/poids fort, générateur
@@ -30,9 +31,10 @@ void init_timer() {
     outb(high, CHANNEL0);
 
     // Activation de l'IT
-    outb(inb(PIC_CONFIG) & 0xfe, PIC_CONFIG);
+    outb(inb(0x21) & ~(1 << 0), 0x21);
 }
 
+/* Convertit le temps total en heurs, minutes et secondes */
 void convert_timer() {
     uint32_t total_sec = timer / 1000;
 
@@ -41,6 +43,7 @@ void convert_timer() {
     sys_time.hours = total_sec / 3600;
 }
 
+/* Met dans un buffer la durée au format hh:mm:ss*/
 void put_time(char *time_buffer) {
     // heures
     time_buffer[0] = '0' + (sys_time.hours / 10);
@@ -61,6 +64,7 @@ void put_time(char *time_buffer) {
     time_buffer[8] = '\0';
 }
 
+/* Affiche la durée dans la console */
 void display_time() {
     uint32_t current_timer = get_timer();
 

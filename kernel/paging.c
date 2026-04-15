@@ -25,7 +25,7 @@ void initialise_paging() {
     init_heap();
     alloc_repertory_table();
 
-    for (int i = 0; i < get_stack_top(); i += PAGE_SIZE) {
+    for (uint32_t i = 0; i < get_stack_top(); i += PAGE_SIZE) {
         alloc_page_entry(i, 1, 0);
     }
 
