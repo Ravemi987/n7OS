@@ -5,3 +5,4 @@ char *gets (char *);
 char getchar (void);
 int atoi (const char *);
 
+#define NULL ((void *)0)

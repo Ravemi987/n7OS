@@ -10,6 +10,8 @@ void console_clear(uint8_t start_row);
 uint16_t get_index(uint16_t row, uint16_t column);
 void console_print_header();
 void console_display_char(uint16_t pos, const char c);
+void console_scroll();
+
 
 /* ----- Init ----- */
 
@@ -25,6 +27,7 @@ void init_console() {
     console_put_cursor(get_index(HEADER_HEIGHT, 0));
 }
 
+
 /* Affichage du header */
 void console_print_header() {
     console_print_at(0, 0, "Welcome to Sauron's n7OS !");
@@ -35,11 +38,14 @@ void console_print_header() {
     }
 }
 
+
 /* ----- Fonctions auxiliaires (wrapper) ----- */
+
 
 void console_display_char(uint16_t pos, const char c) {
     scr_tab[pos] = (CHAR_COLOR << 8) | c;
 }
+
 
 void console_clear(uint8_t start_row) {
     for (uint16_t i = start_row; i < VGA_HEIGHT; i++) {
@@ -49,21 +55,26 @@ void console_clear(uint8_t start_row) {
     }
 }
 
+
 int is_control_char(const char c) {
     return c == '\b' || c == '\t' || c == '\n' || c == '\f' || c == '\r';
 }
+
 
 uint16_t get_index(uint16_t row, uint16_t column) {
     return VGA_WIDTH * row + column;
 }
 
+
 uint16_t get_row(uint16_t pos) {
     return pos / VGA_WIDTH;
 }
 
+
 uint16_t get_col(uint16_t pos) {
     return pos % VGA_WIDTH;
 }
+
 
 /* ----- Fonctions principales ----- */
 
@@ -73,6 +84,7 @@ void console_put_cursor(uint16_t pos) {
     outb(CMD_HIGH, PORT_CMD);                   // On veut écrire dans le premier octet
     outb((uint8_t) (pos >> 8), PORT_DATA);      // Valeur 'pos' décalée à droite de 8 bits (pour avoir les bits hauts)
 }
+
 
 uint16_t console_get_cursor() {
     uint16_t pos = 0;
@@ -85,6 +97,7 @@ uint16_t console_get_cursor() {
 
     return pos;
 }
+
 
 uint16_t console_put_control(const char c, uint16_t pos) {
     uint16_t new_pos = pos;
@@ -116,6 +129,21 @@ uint16_t console_put_control(const char c, uint16_t pos) {
     return new_pos;
 }
 
+
+void console_scroll() {
+    // On remonte toutes les lignes à partir du header jusqu'à (VGA_HEIGHT - 1)
+    for (uint16_t i = HEADER_HEIGHT; i < VGA_HEIGHT - 1; i++) {
+        for (uint16_t j = 0; j < VGA_WIDTH; j++) {
+            scr_tab[get_index(i, j)] = scr_tab[get_index(i + 1, j)];
+        }
+    }
+
+    for (uint16_t j = 0; j < VGA_WIDTH; j++) {
+        console_display_char(get_index(VGA_HEIGHT - 1, j), ' ');
+    }
+}
+
+
 void console_putchar(const char c) {
     uint16_t pos = console_get_cursor();
 
@@ -129,11 +157,13 @@ void console_putchar(const char c) {
 
     // position du curseur
     if (pos >= VGA_SIZE) {
-        pos = get_index(HEADER_HEIGHT, 0);
+        console_scroll();
+        pos = get_index(VGA_HEIGHT - 1, pos % VGA_WIDTH);
     }
 
     console_put_cursor(pos);
 }
+
 
 int console_putbytes(const char *s, int len) {
     int i;
@@ -142,6 +172,7 @@ int console_putbytes(const char *s, int len) {
     }
     return i;
 }
+
 
 /* Affichae une chaîne de caractères à la position (row, col) */
 void console_print_at(uint16_t row, uint16_t col, const char *s) {

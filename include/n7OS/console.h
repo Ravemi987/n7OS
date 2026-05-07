@@ -54,4 +54,6 @@ int console_putbytes(const char *s, int len);
  */
 void console_print_at(uint16_t row, uint16_t col, const char *s);
 
+void console_putchar(const char c);
+
 #endif
