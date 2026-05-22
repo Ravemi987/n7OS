@@ -22,12 +22,6 @@ void init_syscall() {
 	init_irq_entry(0x80, (uint32_t) handler_syscall);
 }
 
-// code de la fonction de traitement de l'appel systeme example
-int sys_example() {
-  	// on ne fait que retourner 1
-  	return 1;
-}
-
 int sys_shutdown(int n) {
 	if (n == 1) {
 		outw(0x2000, 0x604);

@@ -5,8 +5,12 @@ extern void terminal();
 
 void terminal() {
 	printf("\nLancement du terminal...\n");
-	
+	char buf[256];
+
   	while(1) {
-    	hlt();
+
+		printf("root$ ");
+		scanf("%s", buf);
+		printf("Vous avez entre : %s\n", buf);
   	}
 }

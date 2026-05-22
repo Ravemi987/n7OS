@@ -41,7 +41,6 @@ void terminer_processus() {
 
     if (p->state == ELU) {
         p->state = LIBRE;
-        free(p->stack_base);
         schedule();
     }
 }
@@ -63,7 +62,6 @@ void debloquer_processus(pid_t pid) {
     if (p->state == BLOQUE) {
         push(file_processus_prets, p);
         p->state = PRET;
-        schedule();
     }
 }
 
@@ -92,7 +90,7 @@ pid_t creer_processus(const char *name, void *function) {
     if (stack == NULL) return -1;
     uint32_t *stack_top = (uint32_t *)((uint8_t *)stack + STACK_SIZE);
     
-    // Astuce: si un process n'a pas de boucle, on passe l'aadresse pour qu'il se termine sans crash
+    // Astuce: si un process n'a pas de boucle, on passe l'addresse pour qu'il se termine sans crash
     stack_top--;
     *stack_top = (uint32_t)terminer_processus;
     
@@ -113,6 +111,7 @@ pid_t creer_processus(const char *name, void *function) {
 }
 
 
+
 void init_process() {
     // Initialisation de la file des prêts
     file_processus_prets = createQueue();
@@ -122,7 +121,7 @@ void init_process() {
         process_table[i].state = LIBRE;
     }
 
-    // On utilise un contexte temporaire pour ne pas ecraser le registre du kernel après premier siwtch
+    // On utilise un contexte temporaire pour ne pas ecraser le registre du kernel après premier switch
     static process_t boot_context;
     boot_context.pid = 999;
     boot_context.state = LIBRE;
@@ -162,8 +161,6 @@ void reveiller_processus() {
             push(file_processus_prets, &process_table[i]);
         }
     }
-
-    schedule();
 }
 
 

@@ -29,27 +29,27 @@ void handler_it50() {
 
 /* Interruption pour le timer (IT 0x20 ou 32)*/
 void handler_it20() {
-    outb(inb(0x21)|(1 << 0), 0x21);           // Désactivation de l'IT
+    // outb(inb(0x21)|(1 << 0), 0x21);           // Désactivation de l'IT
     outb(0x20, 0x20);                         // ACK au PIC Master
 
     increment_timer();                        // Incrémentation du compteur système
     display_time();
     //reveiller_processus();                    // Réveil des processus endormis
     
-    outb(inb(0x21) & ~(1 << 0), 0x21);        // Ré-activation de l'IT
+    // outb(inb(0x21) & ~(1 << 0), 0x21);        // Ré-activation de l'IT
     
-    //sti();
-    //schedule();
+    sti();
+    schedule();
 }
 
 
 /* Interruption pour le clavier (IT 0x21) */
 void handler_it21() {
-    outb(inb(0x21)|(1 << 1), 0x21);           // Désactivation de l'IT
-    outb(0x20, 0x20);                         // ACK au PIC Master
-
+    //outb(inb(0x21)|(1 << 1), 0x21);           // Désactivation de l'IT
+    
     uint32_t char_code = inb(KEYB_ENCODER);
+    outb(0x20, 0x20);                         // ACK au PIC Master
     read_code(char_code);
 
-    outb(inb(0x21) & ~(1 << 1), 0x21);      // Ré-activation de l'IT
+    // outb(inb(0x21) & ~(1 << 1), 0x21);      // Ré-activation de l'IT
 }

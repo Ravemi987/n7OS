@@ -3,7 +3,7 @@
 
 #include <n7OS/processus.h>
 
-#define NB_SYSCALL 10
+#define NB_SYSCALL 6
 
 typedef int (*fnptr)();
 

@@ -6,8 +6,8 @@
 #include <n7OS/queue.h>
 #include <n7OS/time.h>
 
-#define NB_PROC 10
-#define STACK_SIZE 1024
+#define NB_PROC 5
+#define STACK_SIZE 4096
 
 typedef uint32_t pid_t;
 
