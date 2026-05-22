@@ -26,6 +26,7 @@ void kernel_start(void)
     init_keyboard();            // Clavier
     sti();                      // Interruptions
     init_syscall();             // Appels systèmes
+    
     init_kernel_process();
     
 
