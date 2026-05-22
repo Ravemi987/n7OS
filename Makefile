@@ -47,6 +47,7 @@ clean:
 
 dbg-qemu: kernel.bin
 	$(QEMU) $(QEMUOPTS) $(QEMUGDB) &
+	$(QEMU) $(QEMUOPTS) -s -S &
 	$(DEBUG) $(DIRS) $^
 	pkill qemu
 

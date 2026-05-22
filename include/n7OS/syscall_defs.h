@@ -3,26 +3,20 @@
 
 #include <n7OS/processus.h>
 
-#define NB_SYSCALL 3
-
-int sys_example();
-
-int sys_shutdown(int n);
-
-int sys_write(const char *s, int len);
+#define NB_SYSCALL 10
 
 typedef int (*fnptr)();
 
-pid_t fork(const char *name, fnptr function);
-
-int exit();
-
-pid_t getpid();
-
-int sleep(int seconds);
-
 extern fnptr syscall_table[NB_SYSCALL];
-
 void add_syscall(int num, fnptr function);
+
+int sys_shutdown(int n);
+int sys_write(const char *s, int len);
+pid_t sys_fork(const char *name, void *function);
+int sys_exit();
+pid_t sys_getpid();
+int sys_sleep(int seconds);
+
+
 
 #endif

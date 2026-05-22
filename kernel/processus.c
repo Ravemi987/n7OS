@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <malloc.h>
 
-
 extern void ctx_sw(uint32_t *regs_old, uint32_t *regs_new);
 
 
@@ -11,8 +10,13 @@ Queue *file_processus_prets;
 process_t *processus_actif = NULL;
 
 
-pid_t getPid() {
+pid_t get_pid() {
     return processus_actif != NULL ? processus_actif->pid : (pid_t)-1;
+}
+
+process_t* get_processus(pid_t pid) {
+    if (pid >= NB_PROC) return NULL;
+    return &process_table[pid];
 }
 
 
@@ -33,7 +37,7 @@ void init_regs(pid_t pid, uint32_t *stack_top) {
 
 
 void terminer_processus() {
-    process_t *p = &process_table[getPid()];
+    process_t *p = &process_table[get_pid()];
 
     if (p->state == ELU) {
         p->state = LIBRE;
@@ -44,7 +48,7 @@ void terminer_processus() {
 
 
 void arreter_processus() {
-    process_t *p = &process_table[getPid()];
+    process_t *p = &process_table[get_pid()];
 
     if (p->state == ELU) {
         p->state = BLOQUE;
@@ -78,35 +82,26 @@ void bloquer_processus(pid_t pid) {
 }
 
 
-void init_kernel_process() {
-    file_processus_prets = createQueue();
-
-    process_t *p0 = &process_table[0];
-    p0->pid = 0;
-    p0->state = ELU;
-    processus_actif = p0;
-}
-
-
-pid_t creer_processus(void *func) {
+pid_t creer_processus(const char *name, void *function) {
     pid_t pid;
-
+    
     if ((pid = allouer_pid()) == (pid_t)-1) return (pid_t)-1;
     
     // Allocation de la pile et calcul du sommet de pile
     void *stack = malloc(STACK_SIZE);
     if (stack == NULL) return -1;
     uint32_t *stack_top = (uint32_t *)((uint8_t *)stack + STACK_SIZE);
-
+    
     // Astuce: si un process n'a pas de boucle, on passe l'aadresse pour qu'il se termine sans crash
     stack_top--;
     *stack_top = (uint32_t)terminer_processus;
     
     // On empile l'adresse de la fonction;
     stack_top--;
-    *stack_top = (uint32_t)func;
+    *stack_top = (uint32_t)function;
     
     // On initialise le descripteur du process
+    process_table[pid].name = name;
     process_table[pid].stack_base = stack;
     process_table[pid].pid = pid;
     process_table[pid].state = PRET;
@@ -115,6 +110,27 @@ pid_t creer_processus(void *func) {
     push(file_processus_prets, &process_table[pid]);
     
     return pid;
+}
+
+
+void init_process() {
+    // Initialisation de la file des prêts
+    file_processus_prets = createQueue();
+
+    // Initialisation de toute la table des processus à LIBRE
+    for (int i = 0; i < NB_PROC; i++) {
+        process_table[i].state = LIBRE;
+    }
+
+    // On utilise un contexte temporaire pour ne pas ecraser le registre du kernel après premier siwtch
+    static process_t boot_context;
+    boot_context.pid = 999;
+    boot_context.state = LIBRE;
+    
+    processus_actif = &boot_context;
+
+    // On créé le processus idle
+    creer_processus("idle", idle);
 }
 
 
@@ -134,6 +150,20 @@ void schedule() {
     processus_actif = new_process;
 
     ctx_sw(old_process->regs, new_process->regs);
+}
+
+
+void reveiller_processus() {
+    uint32_t current_time = get_timer();
+
+    for (int i = 0; i < NB_PROC; i++) {
+        if (process_table[i].state == BLOQUE && process_table[i].wake_time <= current_time) {
+            process_table[i].state = PRET;
+            push(file_processus_prets, &process_table[i]);
+        }
+    }
+
+    schedule();
 }
 
 
