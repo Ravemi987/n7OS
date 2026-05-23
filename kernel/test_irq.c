@@ -34,11 +34,10 @@ void handler_it20() {
 
     increment_timer();                        // Incrémentation du compteur système
     display_time();
-    //reveiller_processus();                    // Réveil des processus endormis
+    reveiller_processus();                    // Réveil des processus endormis
     
     // outb(inb(0x21) & ~(1 << 0), 0x21);        // Ré-activation de l'IT
     
-    sti();
     schedule();
 }
 
