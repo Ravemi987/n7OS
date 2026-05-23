@@ -7,88 +7,105 @@
 #define STRSIZE 255
 
 char getchar(void) {
-    char tmpchar;
-
-    while ((tmpchar = kgetch()) == -1) {
-        if (tmpchar == '\n' || tmpchar == '\r') {
-            console_putchar('\n');
-            break;
-        } else {
-            console_putchar(tmpchar);
-        }
+    char c;
+    
+    // kgetch() est déjà bloquante (elle attend une touche) donc on la récupère directement.
+    c = kgetch();
+    
+    // Normalisation de la touche Entrée
+    if (c == '\r') {
+        c = '\n';
     }
-    return tmpchar;
+    
+    // On affiche
+    console_putchar(c);
+    
+    return c;
 }
 
 char *gets(char *s) {
     char str[STRSIZE];
     char c;
-    int count= 0;
-   //shell_mess_col = _kgetcolumn (); // a modifier
-   // shell_mess_line = _kgetline ();
-	memset(str, '\0', STRSIZE);
-    do {
-	    c= getchar();	
-	    if (c == '\b' && count>0)
-            count--;
-	    else
-	        str[count++]= c;
-    } while ((count<255) && (c != '\n' && c != '\r'));
+    int count = 0;
+    
+    memset(str, '\0', STRSIZE);
+    
+    while (count < STRSIZE - 1) {
+        c = getchar();   
+        
+        if (c == '\n' || c == '\r') {
+            break; // Fin de la ligne, on sort de la boucle
+        } 
+        else if (c == '\b') {
+            // Si on efface, on recule uniuqement si on a écrit quelque chose
+            if (count > 0) {
+                count--;
+                str[count] = '\0'; // On efface la lettre en mémoire
+            }
+        } 
+        else {
+            // Pour tous les autres caractères normaux, on les stocke
+            str[count++] = c;
+        }
+    }
 
-    str[--count] = '\0';
+    str[count] = '\0'; // Fin de chaîne
     strcpy(s, str);
 
     return s;
 }
 
-int scanf (const char *format, ...)
-{
+int scanf(const char *format, ...) {
     va_list scan;
     char input[STRSIZE];
-    int count= 0;
-    char maxchars[5] = {0};
-    int i=0, nmax=0;
+    int count = 0;
 
-    char *s_ptr;
-    int *i_ptr;
-
-    va_start (scan, format);
+    va_start(scan, format);
 
     for (; *format; format++) {
+        if (*format == '%') {
+            format++; // On passe le '%'
 
-	if (*format == '%') {
-	    gets(input);
-        
-            count += strlen(input);
-
-            if (isdigit(*++format)) {
-              while (isdigit(*format)) {
+            char maxchars[5] = {0};
+            int i = 0, nmax = 0;
+            
+            while (isdigit(*format)) {
                 maxchars[i++] = *format;
                 format++;
-              }
-              maxchars[i] = '\0';
-              nmax = atoi(maxchars);
             }
+            maxchars[i] = '\0';
+            if (i > 0) nmax = atoi(maxchars);
 
-	    switch (*format) {
-	    case 's':
-		s_ptr = va_arg (scan, char *);
-                if (nmax == 0 || strlen(input) <= nmax)
-					s_ptr = strncpy (s_ptr, input, strlen (input));
-                else
-					s_ptr = strncpy (s_ptr, input, nmax);
-		break;
+            // On demande à l'utilisateur de taper sa ligne
+            gets(input);
+            count += strlen(input);
 
-	    case 'd':
-		i_ptr = va_arg (scan, int *);
-
-                if (nmax != 0 && strlen(input) > nmax)
-                  input[nmax] = '\0';
-		*i_ptr = atoi(input);
-                break;
-	    }
-	}
+            switch (*format) {
+                case 's': {
+                    char *s_ptr = va_arg(scan, char *);
+                    int len = strlen(input);
+                    
+                    if (nmax > 0 && len > nmax) {
+                        len = nmax;
+                    }
+                    
+                    strncpy(s_ptr, input, len);
+                    s_ptr[len] = '\0'; // On doit fermer la chaîne
+                    break;
+                }
+                case 'd': {
+                    int *i_ptr = va_arg(scan, int *);
+                    
+                    if (nmax != 0 && strlen(input) > nmax) {
+                        input[nmax] = '\0';
+                    }
+                    
+                    *i_ptr = atoi(input);
+                    break;
+                }
+            }
+        }
     }
-    va_end (scan);
+    va_end(scan);
     return count;
 }

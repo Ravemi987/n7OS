@@ -1,3 +1,3 @@
 #include <unistd.h>
 
-syscall0(int, exit);
+syscall0(int, exit)

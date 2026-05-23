@@ -3,7 +3,7 @@
 
 #include <n7OS/processus.h>
 
-#define NB_SYSCALL 6
+#define NB_SYSCALL 7
 
 typedef int (*fnptr)();
 
@@ -16,6 +16,7 @@ pid_t sys_fork(const char *name, void *function);
 int sys_exit();
 pid_t sys_getpid();
 int sys_sleep(int seconds);
+int sys_wait(int pid);
 
 
 

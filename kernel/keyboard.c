@@ -38,7 +38,6 @@ void push_code(uint32_t scancode) {
     
     if (ascii != 0) {
         buffer[write_pt] = ascii;
-        printf("%c", buffer[write_pt]);
         write_pt = (write_pt + 1) % BUF_SIZE;
     }
 }

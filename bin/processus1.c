@@ -24,7 +24,7 @@ void processus1() {
     print_mem();
 
     // --- Test paging ---
-    printf("Test page fault :\n");
+    printf("Test page fault : ");
     alloc_page_entry(0xA000000, 1, 1);
     uint32_t *ptr = (uint32_t *)0xA000000;
     int page_fault = *ptr;
@@ -46,9 +46,9 @@ void processus1() {
     // --- Test appels systèmes ---
     printf("Processus [%d] : sleep pendant 3 secondes\n", get_pid());
     sleep(3);
-    printf("Processus [%d] : réveillé après 3 secondes\n", get_pid());
+    printf("Processus [%d] : reveille après 3 secondes\n", get_pid());
 
-    printf("\nAppuyez sur Entrée pour lancer le terminal...\n");
+    printf("\nAppuyez sur Entree pour lancer le terminal...\n");
     char c;
     while ((c = getchar()) != '\n' && c != '\r') {
         c = getchar();
@@ -58,6 +58,4 @@ void processus1() {
     fork("terminal", terminal);
 
     exit();
-
-    //while(1) {hlt();}
 }

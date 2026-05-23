@@ -56,4 +56,8 @@ void console_print_at(uint16_t row, uint16_t col, const char *s);
 
 void console_putchar(const char c);
 
+void console_clear(uint8_t start_row);
+
+void console_reset_cursor();
+
 #endif

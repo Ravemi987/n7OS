@@ -1,3 +1,3 @@
 #include <unistd.h>
 
-syscall0(pid_t, getpid);
+syscall0(pid_t, getpid)

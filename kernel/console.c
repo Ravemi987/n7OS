@@ -56,6 +56,11 @@ void console_clear(uint8_t start_row) {
 }
 
 
+void console_reset_cursor() {
+    console_put_cursor(get_index(HEADER_HEIGHT, 0));
+}
+
+
 int is_control_char(const char c) {
     return c == '\b' || c == '\t' || c == '\n' || c == '\f' || c == '\r';
 }
@@ -105,8 +110,8 @@ uint16_t console_put_control(const char c, uint16_t pos) {
     
     switch (c) {
         case '\b':
-            if (new_pos > get_index(HEADER_HEIGHT, 0)) {
-                new_pos--;
+            if ((pos % VGA_WIDTH) > 11 || (pos % VGA_WIDTH == 0 && pos > 0)) {
+                new_pos = pos - 1;
                 console_display_char(new_pos, ' ');
             }
             break;

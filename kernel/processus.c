@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <n7OS/cpu.h>
+#include <n7OS/syscall_defs.h>
 
 extern void ctx_sw(uint32_t *regs_old, uint32_t *regs_new);
 
@@ -20,7 +21,7 @@ process_t* get_processus(pid_t pid) {
 
 pid_t allouer_pid() {
     for (pid_t i = 0; i < NB_PROC; i++) {
-        if (process_table[i].state == LIBRE) {
+        if (process_table[i].state == LIBRE && process_table[i].stack_base == NULL) {
             return i;
         }
     }
@@ -169,6 +170,12 @@ void reveiller_processus() {
 
 void idle() {
     while (1) {
+        // Garbage Collector
+        for (int i = 0; i < NB_PROC; i++) {
+            if (process_table[i].state == LIBRE && process_table[i].stack_base != NULL) {
+                process_table[i].stack_base = NULL; 
+            }
+        }
         hlt();
     }
 }

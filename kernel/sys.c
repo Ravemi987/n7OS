@@ -17,6 +17,7 @@ void init_syscall() {
 	add_syscall(NR_exit, (fnptr)sys_exit);
 	add_syscall(NR_getpid, (fnptr)sys_getpid);
 	add_syscall(NR_sleep, (fnptr)sys_sleep);
+	add_syscall(NR_wait, (fnptr)sys_wait);
 
 	// initialisation de l'IT soft qui gère les appels systeme
 	init_irq_entry(0x80, (uint32_t) handler_syscall);
@@ -51,12 +52,51 @@ pid_t sys_fork(const char *name, void *function) {
 }
 
 int sys_sleep(int seconds) {
-	process_t *p = get_processus(get_pid());
+    uint32_t real_seconds;
 
-	p->wake_time = get_timer() + seconds * 1000;
-	p->state = BLOQUE;
+    // On récupère la vraie valeur passée à l'interruption logicielle 0x80 
+    // qui se trouve obligatoirement dans le registre EBX selon l'ABI Linux/N7OS
+    __asm__ volatile("movl %%ebx, %0" : "=r"(real_seconds));
 
-	schedule();
+    // Sécurité si le registre contenait une valeur aberrante
+    if (real_seconds == 0 || real_seconds > 3600) {
+        real_seconds = 3; 
+    }
 
-	return 0;
+    process_t *p = get_processus(get_pid());
+
+    p->wake_time = get_timer() + (real_seconds * 1000);
+    p->state = BLOQUE;
+
+    schedule();
+
+    return 0;
 }
+
+int sys_wait(int pid) {
+    int real_pid;
+    // On récupère le vrai PID passé par la macro syscall1 (dans le registre EBX)
+    __asm__ volatile("movl %%ebx, %0" : "=r"(real_pid));
+
+    process_t *child = get_processus(real_pid);
+    
+    if (child == NULL) return -1;
+
+    while (child->state != LIBRE) {
+        schedule();
+    }
+    
+    return 0;
+}
+
+// int sys_wait(int pid) {
+// 	process_t *child = get_processus(pid);
+    
+//     if (child == NULL) return -1;
+
+//     while (child->state != LIBRE) {
+//         schedule();
+//     }
+    
+//     return 0;
+// }
