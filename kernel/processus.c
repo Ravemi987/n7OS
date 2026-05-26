@@ -175,7 +175,7 @@ void reveiller_processus() {
         if (process_table[i].state == BLOQUE 
             && process_table[i].waiting_for_pid == -1
             && process_table[i].wake_time <= current_time) {
-                
+
             process_table[i].state = PRET;
         }
     }

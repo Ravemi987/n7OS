@@ -24,11 +24,8 @@ char getchar(void) {
 }
 
 char *gets(char *s) {
-    char str[STRSIZE];
     char c;
     int count = 0;
-    
-    memset(str, '\0', STRSIZE);
     
     while (count < STRSIZE - 1) {
         c = getchar();   
@@ -37,20 +34,19 @@ char *gets(char *s) {
             break; // Fin de la ligne, on sort de la boucle
         } 
         else if (c == '\b') {
-            // Si on efface, on recule uniuqement si on a écrit quelque chose
+            // Si on efface, on recule uniquement si on a écrit quelque chose
             if (count > 0) {
                 count--;
-                str[count] = '\0'; // On efface la lettre en mémoire
+                s[count] = '\0'; // On efface directement dans 's'
             }
         } 
         else {
-            // Pour tous les autres caractères normaux, on les stocke
-            str[count++] = c;
+            // Pour tous les autres caractères normaux, on les stocke dans 's'
+            s[count++] = c;
         }
     }
 
-    str[count] = '\0'; // Fin de chaîne
-    strcpy(s, str);
+    s[count] = '\0';
 
     return s;
 }

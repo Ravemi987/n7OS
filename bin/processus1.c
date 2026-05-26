@@ -44,7 +44,7 @@ void processus1() {
     // --- Test appels systèmes ---
     printf("Processus [%d] : sleep pendant 3 secondes\n", get_pid());
     sleep(3);
-    printf("Processus [%d] : reveille après 3 secondes\n", get_pid());
+    printf("Processus [%d] : reveil apres 3 secondes\n", get_pid());
 
     printf("\nAppuyez sur Entree pour lancer le terminal...\n");
     char c;
