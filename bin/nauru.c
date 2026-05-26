@@ -22,10 +22,12 @@ void init_nauru() {
 
 void print_nauru_board() {
     int w1 = 0, w2 = 0;
-    printf("\n    1 2 3 4 5 6 7 8 9\n");
+    // Les lettres en haut (Colonnes)
+    printf("\n    A B C D E F G H I\n");
     printf("  +-------------------+\n");
     for (int r = 0; r < SIZE; r++) {
-        printf("%c | ", 'A' + r);
+        // Les chiffres sur le côté (Lignes)
+        printf("%d | ", r + 1); 
         for (int c = 0; c < SIZE; c++) {
             if (grid[r][c] == 1) { printf("o "); w1++; }
             else if (grid[r][c] == 2) { printf("x "); w2++; }
@@ -60,7 +62,7 @@ int check_move(int sr, int sc, int er, int ec, int player, int mode) {
         }
         return 1;
     } 
-    else if (mode == 2) { // 2. Retournement (Atterrir sur vide, adversaire juste derrière)
+    else if (mode == 2) { // Retournement (Atterrir sur vide, adversaire juste derrière)
         if (dist < 2) return 0;
         if (grid[er][ec] != 0) return 0;
         if (grid[er - step_r][ec - step_c] != opp) return 0; // Adversaire avant l'arrivée
@@ -69,7 +71,7 @@ int check_move(int sr, int sc, int er, int ec, int player, int mode) {
         }
         return 2;
     } 
-    else if (mode == 3) { // 3. Libre (Chemin vide)
+    else if (mode == 3) { // Libre (Chemin vide)
         if (grid[er][ec] != 0) return 0;
         for (int i = 1; i < dist; i++) {
             if (grid[sr + i * step_r][sc + i * step_c] != 0) return 0;
@@ -96,17 +98,20 @@ int has_any_capture(int player) {
     return 0;
 }
 
-// LA BOUCLE PRINCIPALE DU JEU
 void play_nauru() {
     init_nauru();
-    char cmd[20], src[10], dst[10];
+    
+    // INITIALISATION OBLIGATOIRE : {0} remplit le buffer de '\0'.
+    // Cela empêche l'écran bleu si scanf laisse la chaîne vide.
+    char cmd[50] = {0}; 
+    char src[50] = {0}; 
+    char dst[50] = {0};
 
     printf("\n*** DEMARRAGE DU JEU DE NAURU ***\n");
 
     while(1) {
         print_nauru_board();
         
-        // --- CONDITIONS DE VICTOIRE ---
         int w1 = 0, w2 = 0;
         for(int r = 0; r < SIZE; r++) for(int c = 0; c < SIZE; c++) {
             if(grid[r][c] == 1) w1++;
@@ -115,9 +120,18 @@ void play_nauru() {
         if (w1 < w2 && w1 < 6) { printf(">>> LE JOUEUR 2 (x) GAGNE LA PARTIE ! <<<\n"); break; }
         if (w2 < w1 && w2 < 6) { printf(">>> LE JOUEUR 1 (o) GAGNE LA PARTIE ! <<<\n"); break; }
 
-        printf("[Joueur %d] Type de deplacement :\n", current_player);
+        printf("========================================\n");
+        printf("[ TOUR DU JOUEUR %d : %s ]\n", current_player, current_player == 1 ? "BLANC (o)" : "NOIR (x)");
+        printf("========================================\n");
+        printf("Type de deplacement :\n");
         printf("1: Elimination | 2: Retournement | 3: Libre | 4: Abandonner\n> ");
+        
+        // On nettoie la chaîne avant lecture
+        cmd[0] = '\0';
         scanf("%s", cmd);
+        
+        // Sécurité si l'utilisateur appuie juste sur Entrée
+        if (cmd[0] == '\0' || cmd[0] == '\n' || cmd[0] == '\r') continue;
         
         int type = cmd[0] - '0';
         if (type == 4) {
@@ -131,42 +145,58 @@ void play_nauru() {
             continue;
         }
 
-        printf("Entrez les coordonnees (ex: A1 C3) : ");
-        scanf("%s", src); scanf("%s", dst);
+        printf("Case de DEPART (ex: A1) : ");
+        src[0] = '\0';
+        scanf("%s", src);
 
-        // Conversion lettres/chiffres vers indices 0-8
+        printf("Case d'ARRIVEE (ex: C3) : ");
+        dst[0] = '\0';
+        scanf("%s", dst);
+
+        if (strlen(src) < 2 || strlen(dst) < 2) {
+            printf("Format invalide. Vous devez entrer une Lettre et un Chiffre (ex: A1).\n");
+            continue;
+        }
+
         int sr = (src[0] >= 'a') ? src[0] - 'a' : src[0] - 'A';
-        int sc = src[1] - '1';
+        int sc = src[1] - '1';                                  
         int er = (dst[0] >= 'a') ? dst[0] - 'a' : dst[0] - 'A';
         int ec = dst[1] - '1';
 
-        if (sr < 0 || sr >= SIZE || sc < 0 || sc >= SIZE) { printf("Format invalide.\n"); continue; }
-        if (grid[sr][sc] != current_player) { printf("Ce n'est pas votre pion !\n"); continue; }
+        if (sr < 0 || sr >= SIZE || sc < 0 || sc >= SIZE || er < 0 || er >= SIZE || ec < 0 || ec >= SIZE) { 
+            printf("/!\\ Coordonnees hors du plateau.\n"); 
+            continue; 
+        }
+        if (grid[sr][sc] != current_player) { printf("/!\\ Ce n'est pas votre pion !\n"); continue; }
 
         int res = check_move(sr, sc, er, ec, current_player, type);
         if (res == 0) { printf("/!\\ Mouvement invalide !\n"); continue; }
 
-        // --- APPLICATION DU COUP ---
         grid[er][ec] = current_player;
         grid[sr][sc] = 0;
         
-        // Si c'est un retournement, on convertit la pièce ennemie située derrière
         if (res == 2) {
             int step_r = ((er - sr) > 0) - ((er - sr) < 0);
             int step_c = ((ec - sc) > 0) - ((ec - sc) < 0);
-            grid[er - step_r][ec - step_c] = current_player; // L'adversaire devient nôtre !
+            grid[er - step_r][ec - step_c] = current_player; 
         }
 
-        // --- ENCHAINEMENT (Prise par retournement uniquement) ---
+        // --- ENCHAINEMENT ---
         if (res == 2) {
             while(1) {
                 print_nauru_board();
                 printf("Enchainer une autre prise par retournement ? (1: oui, 2: non) : ");
+                cmd[0] = '\0';
                 scanf("%s", cmd);
                 if (cmd[0] != '1') break;
                 
+                // Affichage formaté Ligne(Lettre) Colonne(Chiffre)
                 printf("Nouvelle case d'arrivee depuis %c%d : ", 'A' + er, ec + 1);
+                dst[0] = '\0';
                 scanf("%s", dst);
+                
+                if (strlen(dst) < 2) { printf("Format invalide.\n"); continue; }
+
                 int n_er = (dst[0] >= 'a') ? dst[0] - 'a' : dst[0] - 'A';
                 int n_ec = dst[1] - '1';
                 
@@ -175,15 +205,14 @@ void play_nauru() {
                     grid[er][ec] = 0;
                     int step_r = ((n_er - er) > 0) - ((n_er - er) < 0);
                     int step_c = ((n_ec - ec) > 0) - ((n_ec - ec) < 0);
-                    grid[n_er - step_r][n_ec - step_c] = current_player; // Flipped !
-                    er = n_er; ec = n_ec; // Met à jour le pointeur pour d'autres sauts
+                    grid[n_er - step_r][n_ec - step_c] = current_player; 
+                    er = n_er; ec = n_ec; 
                 } else {
                     printf("/!\\ Enchainement invalide !\n");
                 }
             }
         }
         
-        // Fin du tour, on passe à l'adversaire
         current_player = 3 - current_player;
     }
 

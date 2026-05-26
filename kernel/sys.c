@@ -60,6 +60,9 @@ int sys_sleep(int seconds) {
     process_t *p = get_processus(get_pid());
 
     p->wake_time = get_timer() + (seconds * 1000);
+
+    // Par sécurité, si jamais waiting_pid ne vaut pas -1, le sleep reveillera les wait
+    p->waiting_for_pid = -1;
     p->state = BLOQUE;
 
     schedule();
@@ -70,11 +73,15 @@ int sys_sleep(int seconds) {
 int sys_wait(int pid) {
     process_t *child = get_processus(pid);
     
-    if (child == NULL) return -1;
+    if (child == NULL || child->state == LIBRE) return -1;
 
-    while (child->state != LIBRE) {
-        schedule();
-    }
+    process_t *parent = get_processus(get_pid());
+
+    // Le parent va attendre son processus fils
+    parent->waiting_for_pid = pid;
+    parent->state = BLOQUE;
+
+    schedule();
     
     return 0;
 }

@@ -24,10 +24,14 @@ typedef struct {
     void *stack_base;
     const char *name;
     uint32_t regs[5];
+
+    // Pour l'appel système sleep
     uint32_t wake_time;
+
+    // Pour l'appel systtème wait : on enregistre le pid du processus qu'on attend
+    pid_t waiting_for_pid;
 } process_t;
 
-// Appels systèmes dans syscall_defs.h
 
 pid_t creer_processus(const char *name, void *function);
 

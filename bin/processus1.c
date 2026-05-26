@@ -12,8 +12,6 @@
 #include <n7OS/processus.h>
 
 extern void terminal();
-extern void processus2();
-
 
 void processus1() {
 

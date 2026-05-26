@@ -35,6 +35,16 @@ void init_regs(pid_t pid, uint32_t *stack_top) {
 
 void terminer_processus() {
     process_t *p = &process_table[get_pid()];
+    pid_t my_pid = get_pid();
+
+    // Lorsqu'il se termine, le processus doit éventuellement réveiller ceux qui l'attendent
+    for (int i = 0; i < NB_PROC; i++) {
+        if (process_table[i].state == BLOQUE && process_table[i].waiting_for_pid == my_pid) {
+            process_table[i].state = PRET;          // On le repasse à PRET
+            process_table[i].waiting_for_pid = -1;  // Il n'attend plus
+        }
+    }
+
     if (p->state == ELU) {
         p->state = LIBRE;
         schedule();
@@ -95,6 +105,7 @@ pid_t creer_processus(const char *name, void *function) {
     process_table[pid].stack_base = stack;
     process_table[pid].pid = pid;
     process_table[pid].state = PRET;
+    process_table[pid].waiting_for_pid = -1;
     
     init_regs(pid, &stack_top[-2]);
     
@@ -150,7 +161,7 @@ void schedule() {
     new_process->state = ELU;
     processus_actif = new_process;
 
-    // Basculer d eprocess
+    // Basculer de process
     if (old_process != NULL) {
         ctx_sw(old_process->regs, new_process->regs);
     }
@@ -161,7 +172,10 @@ void reveiller_processus() {
     uint32_t current_time = get_timer();
 
     for (int i = 0; i < NB_PROC; i++) {
-        if (process_table[i].state == BLOQUE && process_table[i].wake_time <= current_time) {
+        if (process_table[i].state == BLOQUE 
+            && process_table[i].waiting_for_pid == -1
+            && process_table[i].wake_time <= current_time) {
+                
             process_table[i].state = PRET;
         }
     }
@@ -173,6 +187,7 @@ void idle() {
         // Garbage Collector
         for (int i = 0; i < NB_PROC; i++) {
             if (process_table[i].state == LIBRE && process_table[i].stack_base != NULL) {
+                free(process_table[i].stack_base);
                 process_table[i].stack_base = NULL; 
             }
         }
