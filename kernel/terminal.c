@@ -96,10 +96,10 @@ void terminal() {
 
 void mini_game() {
 	printf("Lancement du jeu\n");
-	printf("Arret du jeu\n");
-	// int child_pid = fork("nauru", play_nauru); 
+	int child_pid = fork("nauru", play_nauru); 
 	
-	// if (child_pid > 0) {
-	// 	wait(child_pid); 
-	// }
+	if (child_pid > 0) {
+		wait(child_pid); 
+	}
+	printf("Arret du jeu\n");
 }
